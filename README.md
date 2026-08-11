@@ -208,11 +208,7 @@ bq-query-runner my-project --json_path "C:/mypath/json/service-account.json"
 If no service account is given (and no `GOOGLE_APPLICATION_CREDENTIALS` is set),
 default authentication is used.
 
-## Development
-
-```sh
-pip install -e .
-```
+## Documentation
 
 Browsable API documentation is available under [`docs/`](docs) (open `docs/index.html`).
 

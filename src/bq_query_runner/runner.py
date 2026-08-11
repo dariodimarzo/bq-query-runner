@@ -696,57 +696,81 @@ def main():
     --config_path is given, every parameter comes from the config file.
 
     Run examples:
-        bq-query-runner my-project --sql_path ./sql/file1.sql
-        bq-query-runner --config_path config/config.json
+        bq-query-runner my-project --sql_path C:/mypath/sql
+        bq-query-runner --config_path C:/mypath/config/config.json
     """
-    # define description for inline help
-    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter, description='''
-        Run SQL scripts on Google BigQuery from files.
-        Output data can be saved in parquet, csv or json format.
+    # build the CLI parser
+    parser = argparse.ArgumentParser(
+        prog="bq-query-runner",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=(
+            "Run SQL scripts on Google BigQuery from files.\n"
+            "\n"
+            "Arguments are read either from a config file (--config_path) OR from the\n"
+            "command line.\n"
+            "Each .sql file may contain several statements (split on ';').\n"
+            "Dry-Run to test queries can be executed. \n"
+            "Placeholders and/or text replacement can be applied. \n"
+            "Results can optionally be exported as parquet, csv or json."
+        ),
+        epilog=(
+            "examples:\n"
+            "  # take every parameter from a config file\n"
+            "  bq-query-runner --config_path C:/mypath/config/config.json\n"
+            "\n"
+            "  # run all .sql in a folder and subfolders\n"
+            "  bq-query-runner my-project --sql_path C:/mypath/sql\n"
+            "\n"
+            "  # dry-run a single file (validate + estimate bytes, no execution)\n"
+            "  bq-query-runner my-project -d --sql_path C:/mypath/sql/query.sql\n"
+            "\n"
+            "  # substitute ${...} placeholders from a JSON file\n"
+            "  bq-query-runner my-project -p --placeholder_path C:/mypath/placeholder/placeholder.json --sql_path C:/mypath/sql"
+        ),
+    )
 
-        Arguments are read EITHER from a config file (--config_path) OR from the
-        command line. The two sources are mutually exclusive: when --config_path is
-        provided, all parameters are taken from the config file.
+    # positional
+    parser.add_argument('PROJECT', type=str, nargs='?', default=None,
+                        help='Target Google Cloud project (omit if provided in the config file).')
 
-        Working folders (created on demand, relative to the current directory):
-            ./log: destination folder for log files
-            ./sql: default folder containing the SQL files to run
-            ./placeholder: default folder containing placeholder files
-            ./output: default folder containing the output files
+    # input
+    g_input = parser.add_argument_group('input')
+    g_input.add_argument('--config_path', type=str,
+                         help='JSON config file. If set, all parameters are read from it (CLI args ignored).')
+    g_input.add_argument('--sql_path', type=str,
+                         help='SQL file or directory to run (default: ./sql).')
 
-        Requirements:
-            google-cloud-bigquery, pandas, pyarrow, sqlparse
-         ''')
+    # placeholders & replacements
+    g_subst = parser.add_argument_group('placeholders & replacements')
+    g_subst.add_argument('-p', dest='placeholder_enable', action='store_true',
+                         help='Enable ${...} placeholder substitution from a JSON file.')
+    g_subst.add_argument('--placeholder_path', type=str,
+                         help='Placeholder JSON file (default: first .json in ./placeholder).')
+    g_subst.add_argument('--replace', type=str,
+                         help='Literal replacements, e.g. orig:changed,orig2:changed2.')
 
-    # add arguments to parser
-    parser.add_argument('--config_path', dest='config_path', type=str,
-                        help='Configuration file path. If provided, ALL parameters are read from it '
-                             '(command line arguments are ignored).')
-    parser.add_argument('PROJECT', type=str, nargs='?', default=None, help='Target Google Cloud project')
-    parser.add_argument('-r', dest='resume', action='store_true', help='Resume from previous error')
-    parser.add_argument('--sql_path', dest='sql_path', type=str,
-                        help='SQL queries path. Single file or directory. If omitted ./sql folder will be used.')
-    parser.add_argument('--log_path', dest='log_path', type=str,
-                        help='Log files destination path. If omitted ./log folder will be used.')
-    parser.add_argument('-d', dest='dry_run', action='store_true', help='Dry run queries')
-    parser.add_argument('--replace', dest='replace', type=str,
-                        help='Replace strings in the SQL file. Example orig:changed,orig2:changed2')
-    parser.add_argument('-p', dest='placeholder_enable', action='store_true',
-                        help='Enable ${...} placeholder substitution from a JSON placeholder file')
-    parser.add_argument('--placeholder_path', dest='placeholder_path', type=str,
-                        help='Placeholder file path. If omitted, the first .json file in ./placeholder folder will be used.')
-    parser.add_argument('--json_path', dest='json_path', type=str,
-                        help='Service account JSON file path. If omitted, default authentication is used.')
-    parser.add_argument('--output_format', dest='output_format', type=validate_output_format,
-                        help='Output format for query results (parquet, csv, json)')
-    parser.add_argument('--output_path', dest='output_path', type=str,
-                        help='Output files destination path. If omitted ./output folder will be used.')
+    # output
+    g_output = parser.add_argument_group('output')
+    g_output.add_argument('--output_format', type=validate_output_format,
+                          help='Export results as parquet, csv or json (omit to skip export).')
+    g_output.add_argument('--output_path', type=str,
+                          help='Export destination folder (default: ./output).')
+
+    # execution & authentication
+    g_run = parser.add_argument_group('execution & authentication')
+    g_run.add_argument('-d', dest='dry_run', action='store_true',
+                       help='Dry run: validate and estimate bytes, do not execute.')
+    g_run.add_argument('-r', dest='resume', action='store_true',
+                       help='Resume from a previous error (skip already-run statements).')
+    g_run.add_argument('--json_path', type=str,
+                       help='Service account JSON file (default: Application Default Credentials).')
+    g_run.add_argument('--log_path', type=str,
+                       help='Log files destination (default: ./log).')
 
     # define arguments
     args = parser.parse_args()
 
-    # Default values, applied as a fallback under the selected source so that every
-    # expected key exists downstream (config file OR command line).
+    # Default values for arguments
     DEFAULTS = {
         'PROJECT': None,
         'resume': False,
