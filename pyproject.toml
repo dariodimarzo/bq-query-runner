@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bq-query-runner"
+version = "0.1.0"
+description = "Run SQL scripts on Google BigQuery from files, with placeholders, replacements, dry-run, resume and result export."
+readme = "README.md"
+license = {text = "GPL-3.0-only"}
+requires-python = ">=3.10"
+authors = [{name = "Dario Di Marzo"}]
+keywords = ["bigquery", "sql", "gcp", "cli", "etl"]
+dependencies = [
+    "google-cloud-bigquery>=3.0",
+    "pandas>=2.0",
+    "pyarrow>=14.0",
+    "sqlparse>=0.4",
+    "db-dtypes>=1.2",
+]
+
+[project.scripts]
+bq-query-runner = "bq_query_runner.runner:main"
+
+[project.urls]
+Homepage = "https://github.com/your-username/bq-query-runner"
+Repository = "https://github.com/your-username/bq-query-runner"
+
+[tool.setuptools.packages.find]
+where = ["src"]

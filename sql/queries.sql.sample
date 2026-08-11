@@ -1,0 +1,16 @@
+-- Sample query file for bq-query-runner.
+-- Copy this file to a real ".sql" one (drop the ".sample" suffix) to have it picked up.
+-- Uses ${...} placeholders defined in placeholder/placeholder.json (run with -p).
+-- A single .sql file can contain multiple statements, separated by ";".
+
+-- Statement 1: filtered extract
+SELECT *
+FROM `${project_id}.${dataset}.${table_prefix}orders`
+WHERE order_date BETWEEN '${start_date}' AND '${end_date}'
+  AND status = '${filter_status}'
+LIMIT ${max_results};
+
+-- Statement 2: simple aggregation
+SELECT COUNT(*) AS orders_count
+FROM `${project_id}.${dataset}.${table_prefix}orders`
+WHERE status = '${filter_status}';

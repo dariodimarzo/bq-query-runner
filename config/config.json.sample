@@ -1,0 +1,12 @@
+{
+    "PROJECT": "gc-testproject-svil",
+    "resume": false,
+    "sql_path": "C:/mypath/sql",
+    "dry_run": false,
+    "replace": null,
+    "placeholder_enable": false,
+    "placeholder_path": "C:/mypath/placeholder/placeholder.json",
+    "json_path": "C:/mypath/json/service-account.json",
+    "log_path": "C:/mypath/log",
+    "output_path": "C:/mypath/output"
+}

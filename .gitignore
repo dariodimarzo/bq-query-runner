@@ -1,0 +1,32 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+dist/
+build/
+*.whl
+.devcontainer/
+.venv/
+venv/
+.pytest_cache/
+
+# Working folders: their contents are never committed (your config, queries,
+# results, logs and - importantly - service-account JSON files stay local). Only
+# the shipped *.sample files and .gitkeep markers are tracked, so the folders
+# exist right after a clone.
+/config/*
+/sql/*
+/placeholder/*
+/json/*
+/log/*
+/output/*
+!/config/*.sample
+!/sql/*.sample
+!/placeholder/*.sample
+!/json/.gitkeep
+!/log/.gitkeep
+!/output/.gitkeep
+
+# Extra safety nets (also for custom log paths)
+*.log
+resume.txt

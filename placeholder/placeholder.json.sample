@@ -1,0 +1,10 @@
+{
+    "project_id": "my-gcp-project",
+    "dataset": "my_dataset",
+    "table_prefix": "my_table_",
+    "start_date": "2025-01-01",
+    "end_date": "2025-02-25",
+    "max_results": 1000,
+    "filter_status": "completed",
+    "region": "US"
+}
