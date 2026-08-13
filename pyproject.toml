@@ -23,8 +23,8 @@ dependencies = [
 bq-query-runner = "bq_query_runner.runner:main"
 
 [project.urls]
-Homepage = "https://github.com/your-username/bq-query-runner"
-Repository = "https://github.com/your-username/bq-query-runner"
+Homepage = "https://github.com/dariodimarzo/bq-query-runner"
+Repository = "https://github.com/dariodimarzo/bq-query-runner"
 
 [tool.setuptools.packages.find]
 where = ["src"]
