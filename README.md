@@ -25,57 +25,10 @@ Run SQL scripts on **Google BigQuery** from files, with placeholders, text repla
 
 The `log` and `output` folders are created automatically if they do not exist.
 
-## Installation
-
-Install the package:
-
-```sh
-pip install .
-```
-
-Or install in editable mode for development:
-
-```sh
-pip install -e .
-```
-
-## Usage
-
-Run using a config file:
-
-```sh
-bq-query-runner --config_path "C:/mypath/config/config.json"
-```
-
-Or run with the console entry point:
-
-```sh
-bq-query-runner my-project --sql_path "C:/mypath/sql"
-```
-
-> Replace `C:/mypath` with your actual path.
-
-Full help:
-
-```sh
-bq-query-runner -h
-```
-
-### Sample files
-
-Ready-to-copy samples are shipped inside the repo. The `.sample` suffix keeps
-them from being picked up as real input — **copy each one and drop the suffix**:
-
-| Sample | Copy to |
-|---|---|
-| `config/config.json.sample` | `config/config.json` |
-| `placeholder/placeholder.json.sample` | `placeholder/placeholder.json` |
-| `sql/queries.sql.sample` | `sql/<your-query>.sql` |
-
 ### Options
 
 | Option | Description |
-|---|---|
+| --- | --- |
 | `PROJECT` | Target Google Cloud project (required unless given in the config file). |
 | `--config_path` | JSON config file; if set, all parameters come from it (CLI args ignored). |
 | `--sql_path` | SQL file or directory to run. |
@@ -114,7 +67,7 @@ command-line argument names. A complete example:
 This example is also shipped as [`config/config.json.sample`](config/config.json.sample).
 
 | Key | Type | Meaning |
-|---|---|---|
+| --- | --- | --- |
 | `PROJECT` | string | Target Google Cloud project (**required**). |
 | `sql_path` | string | SQL file or folder to run. |
 | `log_path` | string | Where log files are written. |
@@ -195,6 +148,44 @@ with a clear error listing the missing names.
 > Placeholders are textual substitution (not parameterized queries), so use them
 > with trusted templates and values.
 
+### Sample files
+
+Ready-to-copy samples are shipped inside the repo. The `.sample` suffix keeps
+them from being picked up as real input — **copy each one and drop the suffix**:
+
+| Sample | Copy to |
+| --- | --- |
+| `config/config.json.sample` | `config/config.json` |
+| `placeholder/placeholder.json.sample` | `placeholder/placeholder.json` |
+| `sql/queries.sql.sample` | `sql/<your-query>.sql` |
+
+## Requirements
+
+- **Python 3.10+**
+- Python packages — installed automatically by `pip install .`:
+  - `google-cloud-bigquery` (≥ 3.0) — BigQuery client
+  - `pandas` (≥ 2.0) — result handling and export
+  - `pyarrow` (≥ 14.0) — Parquet export
+  - `sqlparse` (≥ 0.4) — split each file into individual statements
+  - `db-dtypes` (≥ 1.2) — BigQuery ↔ pandas type support
+- **BigQuery access** (a Google Cloud project + credentials) — see [Authentication](#authentication).
+
+Exact tested versions are pinned in [`requirements.txt`](requirements.txt).
+
+## Installation
+
+Install the package:
+
+```sh
+pip install .
+```
+
+Or install in editable mode for development:
+
+```sh
+pip install -e .
+```
+
 ## Authentication
 
 ```sh
@@ -207,6 +198,28 @@ bq-query-runner my-project --json_path "C:/mypath/json/service-account.json"
 
 If no service account is given (and no `GOOGLE_APPLICATION_CREDENTIALS` is set),
 default authentication is used.
+
+## Usage
+
+Run using a config file:
+
+```sh
+bq-query-runner --config_path "C:/mypath/config/config.json"
+```
+
+Or run with the console entry point:
+
+```sh
+bq-query-runner my-project --sql_path "C:/mypath/sql"
+```
+
+> Replace `C:/mypath` with your actual path.
+
+Full help:
+
+```sh
+bq-query-runner -h
+```
 
 ## Documentation
 
