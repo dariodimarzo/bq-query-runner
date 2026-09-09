@@ -32,10 +32,10 @@ The `log` and `output` folders are created automatically if they do not exist.
 | `PROJECT` | Target Google Cloud project (required unless given in the config file). |
 | `--config_path` | JSON config file; if set, all parameters come from it (CLI args ignored). |
 | `--sql_path` | SQL file or directory to run. |
-| `-d` | Dry run (validate and estimate bytes, do not execute). |
-| `-r` | Resume from previous error. |
+| `--dry_run` | Dry run (validate and estimate bytes, do not execute). |
+| `--resume` | Resume from previous error. |
 | `--replace` | Literal replacements `orig:changed,orig2:changed2`. |
-| `-p` | Enable `${...}` placeholder substitution. |
+| `-placeholder_enable` | Enable `${...}` placeholder substitution. |
 | `--placeholder_path` | Placeholder JSON file. |
 | `--json_path` | Service account JSON file (default: Application Default Credentials). |
 | `--output_format` | Export results as `parquet`, `csv` or `json`. |
@@ -50,7 +50,6 @@ command-line argument names. A complete example:
 ```json
 {
     "PROJECT": "gc-testproject-svil",
-    "resume": false,
     "sql_path": "C:/mypath/sql",
     "dry_run": false,
     "replace": null,
@@ -58,7 +57,9 @@ command-line argument names. A complete example:
     "placeholder_path": "C:/mypath/placeholder/placeholder.json",
     "json_path": "C:/mypath/json/service-account.json",
     "log_path": "C:/mypath/log",
-    "output_path": "C:/mypath/output"
+    "output_path": "C:/mypath/output",
+    "output_format": "csv",
+    "resume": false
 }
 ```
 
@@ -70,15 +71,15 @@ This example is also shipped as [`config/config.json.sample`](config/config.json
 | --- | --- | --- |
 | `PROJECT` | string | Target Google Cloud project (**required**). |
 | `sql_path` | string | SQL file or folder to run. |
-| `log_path` | string | Where log files are written. |
-| `output_path` | string | Where exported results are written. |
-| `output_format` | string | `parquet`, `csv` or `json` (omit to skip export). |
 | `dry_run` | bool | `true` to validate without executing. |
-| `resume` | bool | `true` to skip statements already run successfully. |
 | `replace` | string | Literal `orig:changed,...` substitutions. |
 | `placeholder_enable` | bool | `true` to turn on `${...}` substitution. |
 | `placeholder_path` | string | Placeholder JSON file. |
 | `json_path` | string | Service account JSON file. |
+| `log_path` | string | Where log files are written. |
+| `output_path` | string | Where exported results are written. |
+| `output_format` | string | `parquet`, `csv` or `json` (omit to skip export). |
+| `resume` | bool | `true` to skip statements already run successfully. |
 
 ## Placeholders
 
