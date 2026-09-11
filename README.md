@@ -233,9 +233,8 @@ pip install -e .
 
 ## Authentication
 
-The tool connects through the Google Cloud client library, which resolves
-credentials via **Application Default Credentials (ADC)**. There are three ways to
-authenticate, listed in the order ADC tries them:
+The tool connects through the Google Cloud client library.  
+There are three ways to authenticate, listed in order of priority:
 
 **1. Explicit service account file** — `--service_account_json_path`
 
@@ -251,17 +250,7 @@ over everything below.
 
 `GOOGLE_APPLICATION_CREDENTIALS` is Google's standard variable holding the **path
 to a service account key file**. Set it once and every run picks it up without
-repeating `--service_account_json_path`:
-
-```powershell
-# Windows PowerShell (current session)
-$env:GOOGLE_APPLICATION_CREDENTIALS = "C:/mypath/service_account_json/service-account.json"
-```
-
-```sh
-# macOS / Linux (current shell)
-export GOOGLE_APPLICATION_CREDENTIALS="/path/to/service_account_json/service-account.json"
-```
+repeating `--service_account_json_path`.
 
 **3. User credentials** — gcloud login
 
@@ -269,12 +258,8 @@ export GOOGLE_APPLICATION_CREDENTIALS="/path/to/service_account_json/service-acc
 gcloud auth application-default login
 ```
 
-Stores your own credentials in a well-known file that ADC reads automatically.
-
-> When running **inside Google Cloud** (Compute Engine, Cloud Run, Composer, …)
-> ADC can also use the attached service account, so none of the above is needed.
-> If no credentials can be found, the run stops at the credentials check with a
-> clear error.
+> When running **inside Google Cloud** (Compute Engine, Cloud Run, Composer, …) the attached service account can be used, so none of the above is needed.
+> If no credentials can be found, the run stops at the credentials check with a clear error.
 
 ## Usage
 
