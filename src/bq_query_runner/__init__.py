@@ -11,5 +11,3 @@ The code and the ``main`` entry point live in :mod:`bq_query_runner.runner`.
 __version__ = "0.1.0"
 
 from .runner import main
-
-__all__ = ["main", "__version__"]

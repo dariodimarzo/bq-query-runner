@@ -44,7 +44,7 @@ for lib, alias in required_libraries.items():
 TEXT_ENCODING = 'utf-8-sig'
 
 # path arguments that support relative paths (resolved against base_dir())
-PATH_PARAMS = ['sql_path', 'log_path', 'placeholder_path', 'json_path', 'output_path']
+PATH_PARAMS = ['sql_path', 'log_path', 'placeholder_path', 'service_account_json_path', 'output_path']
 
 
 def base_dir():
@@ -143,12 +143,12 @@ def check_arguments(input_param):
         if not input_param.get('PROJECT'):
             raise Exception("The PROJECT argument is required. Provide it in the command line or in the config file.")
 
-        # Validate input paths: sql_path must exist if provided;
-        # placeholder_path only when placeholder substitution is enabled.
-        # json_path is intentionally NOT validated here: a missing service account falls back to default auth.
+        # Validate input paths: sql_path must exist if provided; placeholder_path
+        # is validated whenever it is set (providing it is what enables substitution).
+        # service_account_json_path is intentionally NOT validated here: a missing service account falls back to default auth.
         # Output paths (log/output) may not exist yet, as long as the parent does.
         input_paths = ['sql_path']
-        if input_param.get('placeholder_enable'):
+        if input_param.get('placeholder_path'):
             input_paths.append('placeholder_path')
         for path_param in input_paths:
             value = input_param.get(path_param)
@@ -247,13 +247,14 @@ class RunQuery:
         """
         Function to set the service account credentials.
 
-        Either an explicit file (json_path) is used, or nothing: there is no
-        folder auto-discovery. When json_path is not provided - or points to a
-        missing file - default authentication is used (no fail-fast).
+        Either an explicit file (service_account_json_path) is used, or nothing:
+        there is no folder auto-discovery. When service_account_json_path is not
+        provided - or points to a missing file - default authentication is used
+        (no fail-fast).
         """
-        if self.json_path and os.path.isfile(self.json_path):
-            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = self.json_path
-            self.logger.log(f"I: Using specified service account: {self.json_path}")
+        if self.service_account_json_path and os.path.isfile(self.service_account_json_path):
+            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = self.service_account_json_path
+            self.logger.log(f"I: Using specified service account: {self.service_account_json_path}")
         else:
             self.logger.log("I: No service account JSON path provided or file not found. "
                             "Using default authentication.")
@@ -332,13 +333,14 @@ class RunQuery:
     def load_placeholders(self):
         """
         Function to load placeholder definitions from the placeholder file
-        (loaded once and cached). If placeholder_path is provided, use that file
-        directly. Otherwise, look for the first JSON file in the ./placeholder folder.
+        (loaded once and cached). Placeholder substitution is enabled simply by
+        providing ``placeholder_path``: when it is not set, no substitution is done.
 
         Returns:
             Dictionary mapping placeholder names to their substitution values
         """
-        if not self.placeholder_enable:
+        # No file provided -> placeholders are disabled.
+        if not self.placeholder_path:
             return {}
 
         # Return the cached placeholders if already loaded
@@ -347,23 +349,6 @@ class RunQuery:
 
         # Cache the outcome from here on (even an empty dict) so the lookup runs once.
         self._placeholders = {}
-
-        # Find placeholder file if enabled but no specific path provided
-        if not self.placeholder_path:
-            placeholder_dir = os.path.join(base_dir(), "placeholder")
-            for r, _, files in os.walk(placeholder_dir):
-                for file in files:
-                    if file.upper().endswith(".JSON"):
-                        self.placeholder_path = os.path.join(r, file)
-                        self.logger.log(f"I: Found placeholder file in ./placeholder folder: {self.placeholder_path}")
-                        break
-                if self.placeholder_path:
-                    break
-
-            if not self.placeholder_path:
-                self.logger.log("W: No placeholder file found in ./placeholder folder. "
-                                "Continuing without placeholders.")
-                return self._placeholders
 
         # Load placeholders from the file
         if not os.path.isfile(self.placeholder_path):
@@ -417,8 +402,8 @@ class RunQuery:
             with open(sql_file, "r", encoding=TEXT_ENCODING) as f:
                 data = f.read()
 
-            # Apply ${...} placeholder substitution from the placeholder file if enabled
-            if self.placeholder_enable:
+            # Apply ${...} placeholder substitution when a placeholder file is provided
+            if self.placeholder_path:
                 placeholders = self.load_placeholders()
                 if placeholders:
                     referenced = re.findall(r'\${([^}]+)}', data)
@@ -722,10 +707,10 @@ def main():
             "  bq-query-runner my-project --sql_path C:/mypath/sql\n"
             "\n"
             "  # dry-run a single file (validate + estimate bytes, no execution)\n"
-            "  bq-query-runner my-project -d --sql_path C:/mypath/sql/query.sql\n"
+            "  bq-query-runner my-project --dry_run --sql_path C:/mypath/sql/query.sql\n"
             "\n"
             "  # substitute ${...} placeholders from a JSON file\n"
-            "  bq-query-runner my-project -p --placeholder_path C:/mypath/placeholder/placeholder.json --sql_path C:/mypath/sql"
+            "  bq-query-runner my-project --placeholder_path C:/mypath/placeholder/placeholder.json --sql_path C:/mypath/sql"
         ),
     )
 
@@ -742,10 +727,8 @@ def main():
 
     # placeholders & replacements
     g_subst = parser.add_argument_group('placeholders & replacements')
-    g_subst.add_argument('-p', dest='placeholder_enable', action='store_true',
-                         help='Enable ${...} placeholder substitution from a JSON file.')
     g_subst.add_argument('--placeholder_path', type=str,
-                         help='Placeholder JSON file (default: first .json in ./placeholder).')
+                         help='Placeholder JSON file; providing it enables ${...} substitution.')
     g_subst.add_argument('--replace', type=str,
                          help='Literal replacements, e.g. orig:changed,orig2:changed2.')
 
@@ -758,12 +741,12 @@ def main():
 
     # execution & authentication
     g_run = parser.add_argument_group('execution & authentication')
-    g_run.add_argument('-d', dest='dry_run', action='store_true',
+    g_run.add_argument('--dry_run', dest='dry_run', action='store_true',
                        help='Dry run: validate and estimate bytes, do not execute.')
-    g_run.add_argument('-r', dest='resume', action='store_true',
+    g_run.add_argument('--resume', dest='resume', action='store_true',
                        help='Resume from a previous error (skip already-run statements).')
-    g_run.add_argument('--json_path', type=str,
-                       help='Service account JSON file (default: Application Default Credentials).')
+    g_run.add_argument('--service_account_json_path', type=str,
+                       help='Service account JSON key file (default: Application Default Credentials).')
     g_run.add_argument('--log_path', type=str,
                        help='Log files destination (default: ./log).')
 
@@ -775,11 +758,10 @@ def main():
         'PROJECT': None,
         'resume': False,
         'dry_run': False,
-        'placeholder_enable': False,
         'sql_path': None,
         'log_path': None,
         'placeholder_path': None,
-        'json_path': None,
+        'service_account_json_path': None,
         'replace': None,
         'output_format': None,
         'output_path': None,
