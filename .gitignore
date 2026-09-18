@@ -17,13 +17,13 @@ venv/
 /config/*
 /sql/*
 /placeholder/*
-/service_account_json/*
+/sa_json_key/*
 /log/*
 /output/*
 !/config/*.sample
 !/sql/*.sample
 !/placeholder/*.sample
-!/service_account_json/.gitkeep
+!/sa_json_key/.gitkeep
 !/log/.gitkeep
 !/output/.gitkeep
 

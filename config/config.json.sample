@@ -4,7 +4,7 @@
     "dry_run": false,
     "replace": null,
     "placeholder_path": "C:/mypath/placeholder/placeholder.json",
-    "service_account_json_path": "C:/mypath/service_account_json/service-account.json",
+    "sa_json_key_path": "C:/mypath/sa_json_key/service-account.json",
     "log_path": "C:/mypath/log",
     "output_path": "C:/mypath/output",
     "output_format": "csv",

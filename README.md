@@ -21,7 +21,7 @@ Run SQL scripts on **Google BigQuery** from files, with placeholders, text repla
 - **Export results**
   `--output_format parquet|csv|json` saves the result of each statement to a file.
 - **Flexible authentication**
-  Uses Application Default Credentials, `GOOGLE_APPLICATION_CREDENTIALS`, or an explicit service account file via `--service_account_json_path`.
+  Uses Application Default Credentials, `GOOGLE_APPLICATION_CREDENTIALS`, or an explicit service account file via `--sa_json_key_path`.
 
 The `log` and `output` folders are created automatically if they do not exist.
 
@@ -36,7 +36,7 @@ The `log` and `output` folders are created automatically if they do not exist.
 | `--resume` | flag | Resume from previous error. |
 | `--replace` | string | Literal replacements `orig:changed,orig2:changed2`. |
 | `--placeholder_path` | string | Placeholder JSON file; providing it enables `${...}` substitution. |
-| `--service_account_json_path` | string | Service account JSON key file (default: Application Default Credentials). |
+| `--sa_json_key_path` | string | Service account JSON key file (default: Application Default Credentials). |
 | `--output_format` | string | Export results as `parquet`, `csv` or `json`. |
 | `--output_path` | string | Export destination for results. |
 | `--log_path` | string | Log files destination. |
@@ -58,7 +58,7 @@ command-line argument names. A complete example:
     "dry_run": false,
     "replace": null,
     "placeholder_path": "C:/mypath/placeholder/placeholder.json",
-    "service_account_json_path": "C:/mypath/service_account_json/service-account.json",
+    "sa_json_key_path": "C:/mypath/sa_json_key/service-account.json",
     "log_path": "C:/mypath/log",
     "output_path": "C:/mypath/output",
     "output_format": "csv",
@@ -77,7 +77,7 @@ This example is also shipped as [`config/config.json.sample`](config/config.json
 | `dry_run` | bool | `true` to validate without executing. |
 | `replace` | string | Literal `orig:changed,...` substitutions. |
 | `placeholder_path` | string | Placeholder JSON file; set it to turn on `${...}` substitution. |
-| `service_account_json_path` | string | Service account JSON key file. |
+| `sa_json_key_path` | string | Service account JSON key file. |
 | `log_path` | string | Where log files are written. |
 | `output_path` | string | Where exported results are written. |
 | `output_format` | string | `parquet`, `csv` or `json` (omit to skip export). |
@@ -236,10 +236,10 @@ pip install -e .
 The tool connects through the Google Cloud client library.  
 There are three ways to authenticate, listed in order of priority:
 
-**1. Explicit service account file** — `--service_account_json_path`
+**1. Explicit service account file** — `--sa_json_key_path`
 
 ```sh
-bq-query-runner my-project --service_account_json_path "C:/mypath/service_account_json/service-account.json"
+bq-query-runner my-project --sa_json_key_path "C:/mypath/sa_json_key/service-account.json"
 ```
 
 This is the tool's first-class option: internally it just points
@@ -250,7 +250,7 @@ over everything below.
 
 `GOOGLE_APPLICATION_CREDENTIALS` is Google's standard variable holding the **path
 to a service account key file**. Set it once and every run picks it up without
-repeating `--service_account_json_path`.
+repeating `--sa_json_key_path`.
 
 **3. User credentials** — gcloud login
 

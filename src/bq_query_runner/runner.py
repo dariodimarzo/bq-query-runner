@@ -44,7 +44,7 @@ for lib, alias in required_libraries.items():
 TEXT_ENCODING = 'utf-8-sig'
 
 # path arguments that support relative paths (resolved against base_dir())
-PATH_PARAMS = ['sql_path', 'log_path', 'placeholder_path', 'service_account_json_path', 'output_path']
+PATH_PARAMS = ['sql_path', 'log_path', 'placeholder_path', 'sa_json_key_path', 'output_path']
 
 
 def base_dir():
@@ -145,7 +145,7 @@ def check_arguments(input_param):
 
         # Validate input paths: sql_path must exist if provided; placeholder_path
         # is validated whenever it is set (providing it is what enables substitution).
-        # service_account_json_path is intentionally NOT validated here: a missing service account falls back to default auth.
+        # sa_json_key_path is intentionally NOT validated here: a missing service account falls back to default auth.
         # Output paths (log/output) may not exist yet, as long as the parent does.
         input_paths = ['sql_path']
         if input_param.get('placeholder_path'):
@@ -247,14 +247,14 @@ class RunQuery:
         """
         Function to set the service account credentials.
 
-        Either an explicit file (service_account_json_path) is used, or nothing:
-        there is no folder auto-discovery. When service_account_json_path is not
+        Either an explicit file (sa_json_key_path) is used, or nothing:
+        there is no folder auto-discovery. When sa_json_key_path is not
         provided - or points to a missing file - default authentication is used
         (no fail-fast).
         """
-        if self.service_account_json_path and os.path.isfile(self.service_account_json_path):
-            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = self.service_account_json_path
-            self.logger.log(f"I: Using specified service account: {self.service_account_json_path}")
+        if self.sa_json_key_path and os.path.isfile(self.sa_json_key_path):
+            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = self.sa_json_key_path
+            self.logger.log(f"I: Using specified service account: {self.sa_json_key_path}")
         else:
             self.logger.log("I: No service account JSON path provided or file not found. "
                             "Using default authentication.")
@@ -745,7 +745,7 @@ def main():
                        help='Dry run: validate and estimate bytes, do not execute.')
     g_run.add_argument('--resume', dest='resume', action='store_true',
                        help='Resume from a previous error (skip already-run statements).')
-    g_run.add_argument('--service_account_json_path', type=str,
+    g_run.add_argument('--sa_json_key_path', type=str,
                        help='Service account JSON key file (default: Application Default Credentials).')
     g_run.add_argument('--log_path', type=str,
                        help='Log files destination (default: ./log).')
@@ -761,7 +761,7 @@ def main():
         'sql_path': None,
         'log_path': None,
         'placeholder_path': None,
-        'service_account_json_path': None,
+        'sa_json_key_path': None,
         'replace': None,
         'output_format': None,
         'output_path': None,
